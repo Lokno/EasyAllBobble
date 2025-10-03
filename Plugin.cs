@@ -1,8 +1,7 @@
-﻿using EasyAllBobble;
-using BepInEx;
+﻿using BepInEx;
 using BepInEx.Logging;
+using EasyAllBobble;
 using HarmonyLib;
-using Mono.Cecil;
 using System.Reflection;
 using UnityEngine;
 
@@ -81,14 +80,14 @@ public class Plugin : BaseUnityPlugin
             SnowCats.SD56,
             SnowCats.DD78,
             SnowCats.SD55,
-            SnowCats.SD49,
+            SnowCats.SD30,
             SnowCats.SD02,
             SnowCats.SD19,
             SnowCats.SD66,
             SnowCats.SD08,
             SnowCats.SD72,
             SnowCats.SD51,
-            SnowCats.SD30,
+            SnowCats.SD49,
             SnowCats.SD11
         };
 
@@ -98,15 +97,14 @@ public class Plugin : BaseUnityPlugin
             return typeof(SnowcatManager).GetMethod("SetBobbles", BindingFlags.Instance | BindingFlags.NonPublic);
         }
 
-        private static void CreateBobbles(SnowcatManager snowcatManagaer, GameObject displayBobble, Transform carInt)
+        private static Transform CreateBobbles(SnowcatManager snowcatManager, GameObject displayBobble)
         {
             Logger.LogInfo("Creating bobbles...");
             var bobbleGO = new GameObject("Bobbles");
-            bobbleGO.transform.parent = carInt;
-            bobbleGO.transform.localPosition = displayBobble.transform.localPosition;
+            bobbleGO.transform.parent = snowcatManager.carDisplayBobble.transform.parent;
+            bobbleGO.transform.localPosition = snowcatManager.carDisplayBobble.transform.localPosition;
             bobbleGO.transform.localRotation = Quaternion.Euler(0, 0, 0);
             bobbleGO.transform.localScale = new Vector3(1, 1, 1);
-            //snowcatManagaer.snowcatsActive.Length
             for (int i = 1; i <= order.Length; i++)
             {
                 SnowCats idx = order[order.Length - i];
@@ -118,41 +116,47 @@ public class Plugin : BaseUnityPlugin
                 bobble.transform.localScale = new Vector3(0.1406f, 0.1406f, 0.1406f);
                 bobble.SetActive(true);
 
-                Swing bswing = bobble.GetComponentInChildren<Swing>();
-
                 // jitter swing parameters for bobbles, except DD78
-                if (idx != SnowCats.DD78 )
+                if (idx != SnowCats.DD78)
                 {
-                    bswing.dampen = 0.98f + Random.Range(-0.004f, 0.004f);
-                    if (idx == SnowCats.SD11) bswing.dampen = 0.991f;
-                    bswing.spring = 50.0f + Random.Range(-5.0f, 5.0f);
+                    Swing bswing = bobble.GetComponentInChildren<Swing>();
+                    if (bswing != null)
+                    {
+                        bswing.dampen = 0.98f + UnityEngine.Random.Range(-0.004f, 0.004f);
+                        if (idx == SnowCats.SD11) bswing.dampen = 0.991f;
+                        bswing.spring = 50.0f + UnityEngine.Random.Range(-5.0f, 5.0f);
+                    }
                 }
 
                 MeshRenderer[] componentsInChildren = bobble.GetComponentsInChildren<MeshRenderer>();
                 for (int j = 0; j < componentsInChildren.Length; j++)
                 {
-                    componentsInChildren[j].material.SetTexture("_BaseMap", snowcatManagaer.npcTextures[(int)idx - 1]);
+                    componentsInChildren[j].material.SetTexture("_BaseMap", snowcatManager.npcTextures[(int)idx - 1]);
                 }
 
             }
+
+            return bobbleGO.transform;
         }
 
         private static void Postfix(SnowcatManager __instance)
         {
-            var carInt = __instance.carDisplayBobble.transform.parent;
-
-            __instance.carDisplayBobble.gameObject.SetActive(value:false);
-
-            var bobbleGO = __instance.carDisplayBobble.transform.parent.Find("Bobbles");
-            if (bobbleGO == null)
+            if (__instance != null && __instance.carDisplayBobble != null)
             {
-                CreateBobbles(__instance, __instance.carDisplayBobble, carInt);
-            }
+                var bobbleTF = __instance.carDisplayBobble.transform.parent.Find("Bobbles");
+                if (bobbleTF == null)
+                {
+                    bobbleTF = CreateBobbles(__instance, __instance.carDisplayBobble);
+                }
 
-            bobbleGO = __instance.carDisplayBobble.transform.parent.Find("Bobbles");
-            for (int i = 1; i <= order.Length; i++)
-            {
-                bobbleGO.Find("Bobble" + i).gameObject.SetActive( __instance.snowcatsActive[i - 1]);
+                for (int i = 0; i < bobbleTF.childCount; i++)
+                {
+                    var bobble = bobbleTF.GetChild(i);
+                    int idx = int.Parse(bobble.name.Substring(6));
+                    bobble.gameObject.SetActive(__instance.snowcatsActive[(int)idx - 1]);
+                }
+
+                __instance.carDisplayBobble.gameObject.SetActive(value: false);
             }
         }
     }

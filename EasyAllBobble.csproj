@@ -4,7 +4,7 @@
     <TargetFramework>net472</TargetFramework>
     <AssemblyName>com.github.Lokno.EasyAllBobble</AssemblyName>
     <Product>EasyAllBobble</Product>
-    <Version>0.1.0</Version>
+    <Version>0.2.0</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <EasyDeliveryPath>D:\Games\SteamLibrary\steamapps\common\Easy Delivery Co</EasyDeliveryPath>

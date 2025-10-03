@@ -8,3 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.0] - 2025-09-30
 
 - Inital Release
+
+## [0.2.0] - 2025-10-02
+
+- Swapped Theo and Fortino so Fortino is next to Ellie
+- Added BepInEx dependency to thunderstore manifest
